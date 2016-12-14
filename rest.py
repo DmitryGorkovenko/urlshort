@@ -37,8 +37,8 @@ class UrlShorterView(MethodView):
         newbook, _ = xls.copy(book)
 
         try:
-            sheet = book.sheet_by_index(1)
-            newbook_sheet = newbook.get_sheet(1)
+            sheet = book.sheet_by_index(0)
+            newbook_sheet = newbook.get_sheet(0)
         except:
             return render_template('index.html', message=u'Ошибка чтения данных со второго листа'), 400
         url_ind = -1
@@ -70,7 +70,7 @@ class UrlShorterView(MethodView):
                 db.session.add(new_url)
             else:
                 key = urls[url]
-            newbook_sheet.write(i, url_ind + 1, u'%s%s' % (request.base_url, key))
+            newbook_sheet.write(i, url_ind + 1, u'www.%s/%s' % (request.host, key))
 
         db.session.flush()
         db.session.commit()
