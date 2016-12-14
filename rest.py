@@ -27,18 +27,26 @@ class UrlShorterView(MethodView):
         return render_template('index.html')
 
     def post(self):
-        file = request.files['file']
-        book = xlrd.open_workbook(file_contents=file.read(), formatting_info=True, on_demand=True)
+        file = request.files.get('file')
+        if file is None or not file.filename:
+            return render_template('index.html', message=u'Найден пустой файл'), 400
+        try:
+            book = xlrd.open_workbook(file_contents=file.read(), formatting_info=True, on_demand=True)
+        except Exception:
+            return render_template('index.html', message=u'Ошибка чтения файла. Файл должен быть формата Excel 97-2003 (xls)'), 400
         newbook, _ = xls.copy(book)
 
-        sheet = book.sheet_by_index(1)
-        newbook_sheet = newbook.get_sheet(1)
+        try:
+            sheet = book.sheet_by_index(1)
+            newbook_sheet = newbook.get_sheet(1)
+        except:
+            return render_template('index.html', message=u'Ошибка чтения данных со второго листа'), 400
         url_ind = -1
         for j in range(sheet.ncols):
             if sheet.cell(0, j).value == 'URL':
                 url_ind = j
         if url_ind == -1:
-            return render_template('error.html', message=u'Не найдена колонка со ссылками'), 400
+            return render_template('index.html', message=u'Не найдена колонка со ссылками'), 400
         keys = set()
         urls = {}
         for x in Url.query.all():
@@ -53,10 +61,10 @@ class UrlShorterView(MethodView):
                 continue
             if url not in urls:
                 key = hashlib.sha224(str(url)).hexdigest()[:self.KEY_LENGTH]
-                i = 0
+                d = 0
                 while key in keys:
-                    key = hashlib.sha224(u'%s%s' % (url, i)).hexdigest()[:self.KEY_LENGTH]
-                    i += 1
+                    key = hashlib.sha224(u'%s%s' % (url, d)).hexdigest()[:self.KEY_LENGTH]
+                    i += d
                 keys.add(key)
                 new_url = Url(url=url, key=key)
                 db.session.add(new_url)
@@ -70,7 +78,7 @@ class UrlShorterView(MethodView):
         f = StringIO.StringIO()
         newbook.save(f)
         response = Response(f.getvalue(), mimetype='application/xls')
-        response.headers['Content-Disposition'] = 'attachment; filename=file.xls'
+        response.headers['Content-Disposition'] = u'attachment; filename=%s' % file.filename
         return response
 
 
