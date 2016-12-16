@@ -85,10 +85,10 @@ class UrlShorterView(MethodView):
 class RedirectView(MethodView):
     def get(self, key):
         try:
-            url = Url.query.filter(Url.key == key).one()
+            url = Url.query.filter(Url.key == key).one().url
         except NoResultFound:
-            raise abort(404)
-        return redirect(url.url)
+            url = 'https://pmclub.ru/login'
+        return render_template('redirect-page.html', url=url)
 
 app.add_url_rule('/', view_func=UrlShorterView.as_view('url-shorter'))
 app.add_url_rule('/<string:key>', view_func=RedirectView.as_view('key-redirect'))
