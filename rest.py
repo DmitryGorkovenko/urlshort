@@ -86,6 +86,8 @@ class RedirectView(MethodView):
     def get(self, key):
         try:
             url = Url.query.filter(Url.key == key).one().url
+            if -1 < url.find('?') < len(url) - 1 and not request.args:
+                return redirect('?'.join([request.url, url.split('?')[-1]]))
         except NoResultFound:
             url = 'https://pmclub.ru/login'
         return render_template('redirect-page.html', url=url)
