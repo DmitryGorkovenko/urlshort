@@ -90,6 +90,7 @@ class RedirectView(MethodView):
                 return redirect('?'.join([request.url, url.split('?')[-1]]))
         except NoResultFound:
             url = 'https://pmclub.ru/login'
+        url = url if url.find('?') > 0 else url + '?'
         return render_template('redirect-page.html', url=url)
 
 app.add_url_rule('/', view_func=UrlShorterView.as_view('url-shorter'))

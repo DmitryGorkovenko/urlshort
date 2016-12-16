@@ -26,6 +26,11 @@
 
 	</script>
 	<script type="text/javascript">
+		var clientId;
+		ga(function(tracker) {
+			clientId = tracker.get('clientId');
+			console.log(clientId);
+		});
 		var block = $('#id_url');
 		var timer = $('#id_timer');
 		var delay = 5;
@@ -37,7 +42,7 @@
 			if (delay == 0) {
 				clearInterval(interval);
 				block.html('Если переход не произошел, то перейдите по ссылке <br/> <a href="{{url}}">{{url}}</a>');
-				window.location.href = '{{url}}';
+				window.location.href = '{{url}}' + '&_ga=' + clientId;
 			}
 		}, 1000);
 	</script>
